@@ -1,10 +1,13 @@
 from fyers_api import fyersModel
 from fyers_api import accessToken
 from fyers_api.Websocket import ws
- 
+import os
  
 
 class Proxy: 
+    access_token_file =  "accessToken.txt"
+
+
     def __init__(self):
         self.fyers = None
         self.logPath = './log'
@@ -19,8 +22,9 @@ class Proxy:
             access_token = self.access_token
             if force != True:
                 access_token = None
-                with open('accessToken.txt', mode='r') as file:
-                    access_token = file.read()
+                if os.path.exists(self.access_token_file) == True:
+                    with open(self.access_token_file, mode='r') as file:
+                        access_token = file.read()
 
             if access_token is None:
                 secret_key = 'WZQWYTVQXM'
@@ -42,7 +46,7 @@ class Proxy:
 
                 access_token = response["access_token"]
                 print('Access Token: ' + access_token)
-                with open('accessToken.txt', mode='w') as file:
+                with open(self.access_token_file, mode='w') as file:
                     file.write(access_token)
 
             self.access_token = access_token
