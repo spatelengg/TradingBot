@@ -1,5 +1,6 @@
 
 import os
+import Ws_Fix
 import threading
 from Strategy4 import Strategy4
 from Helper import Helper
@@ -22,6 +23,10 @@ def write_market_data_to_file(m):
 def message_from_web_socket(msg):
     for m in msg:
         write_market_data_to_file(m)
+        s4.MsgReceived(m)
+    
+def order_update_message (msg):
+    s4.MsgReceivedOrder(msg)
    
  
 def run_strategy_in_thread(s, underlying):
@@ -29,9 +34,13 @@ def run_strategy_in_thread(s, underlying):
 
 _proxy = Proxy()
 _proxy.do_login()
+_ws = _proxy.get_web_socket('symbolData', True)
+_ws.websocket_data = message_from_web_socket
 
+ws_order = _proxy.get_web_socket('orderUpdate', True)
+ws_order.websocket_data = order_update_message
 
-s4 = Strategy4(_proxy, date(2022, 11, 24), message_from_web_socket)
+s4 = Strategy4(_ws, _proxy, date(2022, 11, 24))
 #s4 = Strategy4(_proxy)
 #s4.deploy('BANKNIFTY')
 t1 = threading.Thread(target=run_strategy_in_thread, args=(s4,'BANKNIFTY',))

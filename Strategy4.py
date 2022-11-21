@@ -22,15 +22,16 @@ class Strategy4:
                         ,hour=13
                         ,minute=30)
  
-    def __init__(self, _proxy: Proxy, expiry:date, on_message_callback = None):
+    def __init__(self, _web_socket ,  _proxy: Proxy, expiry:date):
         self.stop_signal = False
         self._proxy = _proxy
         self._helper = Helper(self._proxy)
         self.expiry = expiry
+        self.ws_data = _web_socket
 
         # self.fyers = fyers
         # self.fyersWs = fyersWs
-        self.on_message_callback = on_message_callback
+      
         self.ce = None
         self.pe = None
         self.selected = None
@@ -47,16 +48,11 @@ class Strategy4:
         
         print(msg)
 
-    def order_update_message(msg):
-        a = 0
-
+    
     def deploy(self, underlying, order_qty):
         self.order_qty = order_qty
         print('Deploying ' + Strategy4.name)
         self.op_chain = self._helper.get_option_chain(underlying, self.expiry)
-
-        ws_order = self._proxy.get_web_socket('orderUpdate', True)
-        ws_order.websocket_data = self.order_update_message
 
         while self.ce is None:
             cur_date = datetime.now()
@@ -66,9 +62,7 @@ class Strategy4:
                 print('Watching: ' + str([watch_list['ce'], watch_list['pe'] ]) )
                 self.ce = watch_list['ce']
                 self.pe = watch_list['pe']
-
-                self.ws_data = self._proxy.get_web_socket('symbolData', False)
-                self.ws_data.websocket_data = self.MsgReceived
+                
                 self.ws_data.subscribe(symbol=[self.ce['n'], self.pe['n']],data_type='symbolData')
                 
             else:
@@ -143,47 +137,43 @@ class Strategy4:
         self.close_web_socket(self.ws_data)
         self.order_log('End of strategy')
          
+    def MsgReceivedOrder(self, msg):
+        pass
 
-    def MsgReceived(self, msg):
-        if msg is None:
+    def MsgReceived(self, m):
+        if m is None:
             return
-
-        if self.on_message_callback is not None:
-            try:
-                self.on_message_callback(msg)
-            except Exception as e:
-                print('Something went wrong: {0}'.format(e))
-            
+ 
         if self.stop_signal == True:
             return
+       
         cur_date = datetime.now()
         td = cur_date - self.stop_time
         if td.total_seconds() > 0:
             self.stop_and_exit()
         
+         
+        symb = m['symbol']
 
-        for m in msg:
-            symb = m['symbol']
+        if self.selected is not None:
+            cur = self.selected
+            if symb == cur['n']:
+                self.trail_stop_loss(m)
+            return
 
-            if self.selected is not None:
-                cur = self.selected
-                if symb == cur['n']:
-                    self.trail_stop_loss(m)
-                return
+        cmp = None
+        if m['symbol'] == self.ce['n']:
+            cmp = self.ce
+        elif m['symbol'] == self.pe['n']:
+            cmp = self.pe
 
-            cmp = None
-            if m['symbol'] == self.ce['n']:
-                cmp = self.ce
-            elif m['symbol'] == self.pe['n']:
-                cmp = self.pe
-
-            p_diff = m['ltp'] - cmp['p'];
-            print('Checking price diff: {0} {1} - {2} = {3}'.format(cmp['n'], m['ltp'] , cmp['p'], p_diff) )
-            if m['ltp'] - cmp['p'] > Strategy4.step:
-                print('Selected: ' + str(cmp) + '| Price=' + str(m['ltp']))
-                self.selected = cmp
-                self.option_selected_do_order(m)
-                return
+        p_diff = m['ltp'] - cmp['p'];
+        print('Checking price diff: {0} {1} - {2} = {3}'.format(cmp['n'], m['ltp'] , cmp['p'], p_diff) )
+        if m['ltp'] - cmp['p'] > Strategy4.step:
+            print('Selected: ' + str(cmp) + '| Price=' + str(m['ltp']))
+            self.selected = cmp
+            self.option_selected_do_order(m)
+            return
 
 
 
