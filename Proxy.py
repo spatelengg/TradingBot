@@ -1,7 +1,9 @@
+import os
+import Ws_Fix
 from fyers_api import fyersModel
 from fyers_api import accessToken
 from fyers_api.Websocket import ws
-import os
+
  
 
 class Proxy: 
