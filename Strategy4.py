@@ -2,6 +2,7 @@ from Helper import Helper
 from datetime import datetime, date, timedelta
 from Proxy import Proxy
 import time
+import asyncio
 
 
 class Strategy4:
@@ -28,7 +29,8 @@ class Strategy4:
         self._helper = Helper(self._proxy)
         self.expiry = expiry
         self.ws_data = _web_socket
-
+        self.stop_event = asyncio.Event()
+         
         # self.fyers = fyers
         # self.fyersWs = fyersWs
       
@@ -37,10 +39,7 @@ class Strategy4:
         self.selected = None
         self.buy_order = None
         self.sl_order = None
-        
-        
-       
-
+         
     def order_log(self, msg):
         msg = datetime.now().strftime("%d/%m/%Y, %H:%M:%S") + ': ' + msg + '\n'
         with  open('./' + Strategy4.name + '.log', mode='a') as file:
@@ -66,7 +65,8 @@ class Strategy4:
                 self.ws_data.subscribe(symbol=[self.ce['n'], self.pe['n']],data_type='symbolData')
                 
             else:
-                time.sleep(0.5)
+                print('Strategy execution will start at: ' +  str(self.start_time) ) 
+                time.sleep((self.start_time - datetime.now()).total_seconds())
        
     def option_selected_do_order(self, msg):
         if self.buy_order is None:
