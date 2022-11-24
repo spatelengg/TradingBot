@@ -45,7 +45,8 @@ class Proxy:
                     state='sample_state',scope='openid',nonce='sample_nonce')
                 session.set_token(auth_code)
                 response = session.generate_token()
-
+                print(response)
+                
                 access_token = response["access_token"]
                 print('Access Token: ' + access_token)
                 with open(self.access_token_file, mode='w') as file:
@@ -53,8 +54,10 @@ class Proxy:
 
             self.access_token = access_token
             access_token_websocket = self.client_id + ':' + access_token
+            #print(access_token)
             self.fyers = fyersModel.FyersModel(client_id=self.client_id, token=access_token,log_path=self.logPath)
             res = self.fyers.get_profile()
+            print(res)
 
             if res['s'] == 'error':
                 self.access_token = None

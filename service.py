@@ -21,7 +21,8 @@ class MyService:
 
     def _init_logger(self):
         logger = logging.getLogger(__name__)
-        logger.setLevel(logging.DEBUG)
+        #logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
         stdout_handler = logging.StreamHandler()
         stdout_handler.setLevel(logging.DEBUG)
         stdout_handler.setFormatter(logging.Formatter('%(levelname)8s | %(message)s'))
@@ -71,7 +72,7 @@ class MyService:
         try:
             while True:
                 time.sleep(self.delay)
-                self.logger.info('Tick')
+                self.logger.debug('Tick')
         except KeyboardInterrupt:
             t1.join(1.0)
             self.logger.warning('Keyboard interrupt (SIGINT) received...')
