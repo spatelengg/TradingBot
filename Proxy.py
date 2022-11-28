@@ -47,6 +47,7 @@ class Proxy:
                 response = session.generate_token()
                 print(response)
                 
+
                 access_token = response["access_token"]
                 print('Access Token: ' + access_token)
                 with open(self.access_token_file, mode='w') as file:

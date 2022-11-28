@@ -6,6 +6,7 @@ import time
 from datetime import  datetime, date
 from Strategy4 import Strategy4
 from Proxy import Proxy
+from Const import Const
 
 class MyService:
     FIFO = '/tmp/myservice_pipe'
@@ -63,7 +64,9 @@ class MyService:
         ws_order = _proxy.get_web_socket('orderUpdate', True)
         ws_order.websocket_data = self.order_update_message
 
-        self._s4 = Strategy4(_ws, _proxy, date(2022, 12, 1))
+        exp = Const.get_banknifry_expiry(Const, date.today())
+
+        self._s4 = Strategy4(_ws, _proxy, exp)
         #self._s4.deploy('BANKNIFTY', 25)
         t1 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s4,'BANKNIFTY',))
         t1.daemon = True
