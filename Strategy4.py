@@ -31,6 +31,7 @@ class Strategy4:
         self.ws_data = _web_socket
         self.stop_event = asyncio.Event()
          
+         
         # self.fyers = fyers
         # self.fyersWs = fyersWs
       
@@ -90,7 +91,7 @@ class Strategy4:
             self.order_log('BUY {0} {1} @ {2} SL {3}'.format( m['n'],self.order_qty , msg['ltp'], msg['ltp'] - Strategy4.step))
             ord_id = 0
             #ord_id = Helper.place_order(Helper, ord_data)
-            
+             
             self.buy_order = {
                 'id': ord_id
                 ,'type': ord_data['type'] 
@@ -109,18 +110,19 @@ class Strategy4:
                 self.stop_and_exit(m)
                 return
             print('Buy:{0} SL:{1} LTP: {2} vs {3}'.format(buy_o['p'], buy_o['sl'], m['ltp'],buy_o['lp'] ))
-            if m['ltp'] - buy_o['lp'] >= 10:
-                buy_o['lp'] = m['ltp']
+            #if m['ltp'] - buy_o['lp'] >= 10:
+            if m['ltp'] - buy_o['lp'] >= 3:
+                new_sl = m['ltp'] - 20
                 ord_data = {
                     'id': buy_o['id']
                     ,'type' : buy_o['type']
                     ,'qty' : buy_o['qty']
-                    ,'stopLoss' : m['ltp'] - Strategy4.step
+                    ,'stopLoss' : new_sl
                 }
                 
                 #new_o_id = Helper.modify_order(Helper, ord_data)
                 new_o_id = ord_data['id'] + 1
-                new_sl = m['ltp'] - Strategy4.step
+                
                 self.order_log('ChangeSL {0} -> {1}'.format(buy_o['sl'], new_sl))
                 buy_o['sl'] = new_sl
                 buy_o['id'] = new_o_id
