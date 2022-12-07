@@ -23,14 +23,15 @@ class Strategy4:
                         ,hour=13
                         ,minute=30)
  
-    def __init__(self, _web_socket ,  _proxy: Proxy, expiry:date):
+    def __init__(self, _web_socket ,  _proxy: Proxy, underlying: str, order_qty: int, expiry:date):
         self.stop_signal = False
         self._proxy = _proxy
         self._helper = Helper(self._proxy)
         self.expiry = expiry
         self.ws_data = _web_socket
         self.stop_event = asyncio.Event()
-         
+        self.order_qty = order_qty
+        self.underlying = underlying 
          
         # self.fyers = fyers
         # self.fyersWs = fyersWs
@@ -49,10 +50,10 @@ class Strategy4:
         print(msg)
 
     
-    def deploy(self, underlying, order_qty):
-        self.order_qty = order_qty
+    def deploy(self):
+        
         print('Deploying ' + Strategy4.name)
-        self.op_chain = self._helper.get_option_chain(underlying, self.expiry)
+        self.op_chain = self._helper.get_option_chain(self.underlying, self.expiry)
 
         while self.ce is None:
             cur_date = datetime.now()

@@ -11,6 +11,7 @@ from Const import Const
 
 class MyService:
     FIFO = '/tmp/myservice_pipe'
+    running_strategies = []
     
     def __init__(self, delay=5):
         self._s4 = None
@@ -46,14 +47,16 @@ class MyService:
     def message_from_web_socket(self, msg):
         for m in msg:
             self.write_market_data_to_file(m)
-            self._s4.MsgReceived(m)
-        
+            for s in self.running_strategies:
+                s.MsgReceived(m)    
+                   
     def order_update_message (self, msg):
-        self._s4.MsgReceivedOrder(msg)
+        for s in self.running_strategies:
+            s.MsgReceivedOrder(msg)
     
-    
-    def run_strategy_in_thread(self, s, underlying):
-        s.deploy(underlying, 25) 
+    def run_strategy_in_thread(self, s):
+        s.deploy() 
+        self.running_strategies.append(s)
  
 
     def start(self):
@@ -67,13 +70,13 @@ class MyService:
 
         exp = Const.get_banknifry_expiry(Const, date.today())
 
-        self._s4 = Strategy4(_ws, _proxy, exp)
-        self._s9 = Strategy9(_ws, _proxy, exp)
+        self._s4 = Strategy4(_ws, _proxy, 'BANKNIFTY', 25, exp)
+        self._s9 = Strategy9(_ws, _proxy, 'BANKNIFTY', 25, exp)
         #self._s4.deploy('BANKNIFTY', 25)
-        t1 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s4,'BANKNIFTY',))
+        t1 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s4,))
         t1.daemon = True
 
-        t2 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s9,'BANKNIFTY',))
+        t2 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s9,))
         t2.daemon = True
 
         t2.start()

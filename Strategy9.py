@@ -26,14 +26,15 @@ class Strategy9:
     underlying_price = -1.0
      
  
-    def __init__(self, _web_socket ,  _proxy: Proxy, expiry:date):
+    def __init__(self, _web_socket , _proxy: Proxy, underlying: str, order_qty: int, expiry:date):
         self.stop_signal = False
         self._proxy = _proxy
         self._helper = Helper(self._proxy)
         self.expiry = expiry
         self.ws_data = _web_socket
         self.stop_event = asyncio.Event()
-         
+        self.order_qty = order_qty
+        self.underlying = underlying
          
         # self.fyers = fyers
         # self.fyersWs = fyersWs
@@ -62,18 +63,16 @@ class Strategy9:
             print(data)
  
     
-    def deploy(self, underlying, order_qty):
-        self.order_qty = order_qty
-        self.underlying = underlying
+    def deploy(self):
         print('Deploying ' + self.name)
-        self.op_chain = self._helper.get_option_chain(underlying, self.expiry)
+        self.op_chain = self._helper.get_option_chain(self.underlying, self.expiry)
         
         
         while self.ce is None:
             cur_date = datetime.now()
             td = cur_date - self.start_time
             if td.total_seconds() > 0:
-                watch_list = self._helper.get_ption_with_moneyness(self.op_chain, underlying, -1)
+                watch_list = self._helper.get_ption_with_moneyness(self.op_chain, self.underlying, -1)
  
                 self.place_first_order (watch_list)
                
