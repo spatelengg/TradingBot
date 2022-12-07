@@ -8,6 +8,7 @@ from fyers_api.Websocket import ws
 
 class Proxy: 
     access_token_file =  "accessToken.txt"
+    data_subscription_list = {}
 
 
     def __init__(self):
@@ -54,11 +55,12 @@ class Proxy:
                     file.write(access_token)
 
             self.access_token = access_token
-            access_token_websocket = self.client_id + ':' + access_token
+             
             #print(access_token)
             self.fyers = fyersModel.FyersModel(client_id=self.client_id, token=access_token,log_path=self.logPath)
             res = self.fyers.get_profile()
             print(res)
+            self.fyersWs = self.get_web_socket('symbolData', True)
 
             if res['s'] == 'error':
                 self.access_token = None
@@ -79,10 +81,24 @@ class Proxy:
         self.fyersWs.subscribe(data_type='orderUpdate')
 
     def subscribe(self, symbols):
-        self.fyersWs.subscribe(symbol=symbols,data_type='symbolData')
+        dl = self.data_subscription_list
+        for s in symbols:
+            if s not in dl:
+                dl[s] = 0
+            dl[s] = dl[s] + 1
+            
+        self.fyersWs.subscribe(symbol=list(dl.keys()),data_type='symbolData')
 
     def unsubscribe(self, symbols):
-        self.fyersWs.unsubscribe(symbol=symbols)
+        dl = self.data_subscription_list
+        for s in symbols:
+            if dl[s] is not None:
+                dl[s] = dl[s] - 1
+            
+            if dl[s] <= 0:
+                del dl[s]
+
+        self.fyersWs.subscribe(symbol=list(dl.keys()),data_type='symbolData')
 
     def quotes(self, symbols):
         return self.fyers.quotes({'symbols': symbols})

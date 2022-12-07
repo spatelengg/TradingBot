@@ -23,12 +23,12 @@ class Strategy4:
                         ,hour=13
                         ,minute=30)
  
-    def __init__(self, _web_socket ,  _proxy: Proxy, underlying: str, order_qty: int, expiry:date):
+    def __init__(self, _proxy: Proxy, underlying: str, order_qty: int, expiry:date):
         self.stop_signal = False
         self._proxy = _proxy
         self._helper = Helper(self._proxy)
         self.expiry = expiry
-        self.ws_data = _web_socket
+        #self.ws_data = _web_socket
         self.stop_event = asyncio.Event()
         self.order_qty = order_qty
         self.underlying = underlying 
@@ -63,8 +63,8 @@ class Strategy4:
                 print('Watching: ' + str([watch_list['ce'], watch_list['pe'] ]) )
                 self.ce = watch_list['ce']
                 self.pe = watch_list['pe']
-                
-                self.ws_data.subscribe(symbol=[self.ce['n'], self.pe['n']],data_type='symbolData')
+                self._proxy.subscribe([self.ce['n'], self.pe['n']])
+                #self.ws_data.subscribe(symbol=[self.ce['n'], self.pe['n']],data_type='symbolData')
                 
             else:
                 print('Strategy execution will start at: ' +  str(self.start_time) ) 
@@ -135,7 +135,8 @@ class Strategy4:
         self.stop_signal = True
         buy_o = self.buy_order
         self.order_log('SELL {0} @{1}'.format( m['symbol'] , m['ltp']))
-        self.ws_data.unsubscribe(symbol=[self.ce['n'], self.pe['n']]) 
+        #self.ws_data.unsubscribe(symbol=[self.ce['n'], self.pe['n']]) 
+        self._proxy.unsubscribe([self.ce['n'], self.pe['n']])
         self.order_log('End of strategy')
          
     def MsgReceivedOrder(self, msg):
@@ -152,8 +153,7 @@ class Strategy4:
         td = cur_date - self.stop_time
         if td.total_seconds() > 0:
             self.stop_and_exit()
-        
-         
+                 
         symb = m['symbol']
 
         if self.selected is not None:
@@ -167,6 +167,8 @@ class Strategy4:
             cmp = self.ce
         elif m['symbol'] == self.pe['n']:
             cmp = self.pe
+        else:
+            return
 
         p_diff = m['ltp'] - cmp['p'];
         print('Checking price diff: {0} {1} - {2} = {3}'.format(cmp['n'], m['ltp'] , cmp['p'], p_diff) )
@@ -175,6 +177,7 @@ class Strategy4:
             self.selected = cmp
             self.option_selected_do_order(m)
             return
+        return
 
 
 

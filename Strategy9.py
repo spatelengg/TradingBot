@@ -26,12 +26,12 @@ class Strategy9:
     underlying_price = -1.0
      
  
-    def __init__(self, _web_socket , _proxy: Proxy, underlying: str, order_qty: int, expiry:date):
+    def __init__(self, _proxy: Proxy, underlying: str, order_qty: int, expiry:date):
         self.stop_signal = False
         self._proxy = _proxy
         self._helper = Helper(self._proxy)
         self.expiry = expiry
-        self.ws_data = _web_socket
+        
         self.stop_event = asyncio.Event()
         self.order_qty = order_qty
         self.underlying = underlying
@@ -98,7 +98,7 @@ class Strategy9:
                 w = self.pe
             self.place_order(r['v']['ask'], w, 'BUY', 'Timeout')
         
-        self.ws_data.unsubscribe(symbol=symbols) 
+        self._proxy.unsubscribe(symbols) 
         self.order_log('End of ' + self.name)
          
 
@@ -126,7 +126,7 @@ class Strategy9:
         self.ce = ce
         self.pe = pe
        
-        self.ws_data.subscribe(symbol=[ce['Symbol'], pe['Symbol']],data_type='symbolData')
+        self._proxy.subscribe([ce['Symbol'], pe['Symbol']])
 
 
     def place_order(self, price, w, pos, remark):
@@ -142,6 +142,7 @@ class Strategy9:
     def place_sl_order(self, ord, m):
         ltp = m['ltp']
         ord['ord']['ltp'] = ltp
+        
         if ord['ord']['sl'] <= ltp:  #SL Hit
             print('SL hit')
             watch_list = self._helper.get_ption_with_moneyness(self.op_chain, self.underlying, -1)
@@ -162,17 +163,16 @@ class Strategy9:
                     }
                     self.place_order(price, w, 'SELL', 'After SL orders: SL' + str(w['ord']['sl']))
                     
-                    self.ws_data.unsubscribe(symbol=[ord['Symbol']]) 
-                    self.ws_data.subscribe(symbol=[w['Symbol']],data_type='symbolData')
+                    self._proxy.unsubscribe([ord['Symbol']]) 
+                    self._proxy.subscribe([w['Symbol']])
 
                     if w['OPT_TYPE'] == 'CE':
                         self.ce = w
                     else:
                         self.pe = w
 
-
-            
         self.print_profit_loss()
+        
 
     def print_profit_loss(self):
         ce_price = self.ce['ord']['price']

@@ -48,11 +48,17 @@ class MyService:
         for m in msg:
             self.write_market_data_to_file(m)
             for s in self.running_strategies:
-                s.MsgReceived(m)    
+                try:
+                    s.MsgReceived(m)    
+                except Exception  as  e:
+                    print (e)
                    
     def order_update_message (self, msg):
         for s in self.running_strategies:
-            s.MsgReceivedOrder(msg)
+            try:
+                s.MsgReceivedOrder(msg)
+            except Exception  as  e:
+                print (e)
     
     def run_strategy_in_thread(self, s):
         s.deploy() 
@@ -62,16 +68,20 @@ class MyService:
     def start(self):
         _proxy = Proxy()
         _proxy.do_login()
-        _ws = _proxy.get_web_socket('symbolData', True)
-        _ws.websocket_data = self.message_from_web_socket
+        _proxy.set_callback(self.message_from_web_socket)
+
+        # _ws4 = _proxy.get_web_socket('symbolData', True)
+        # _ws9 = _proxy.get_web_socket('symbolData', True)
+        # _ws4.websocket_data = self.message_from_web_socket
+        # _ws9.websocket_data = self.message_from_web_socket
 
         ws_order = _proxy.get_web_socket('orderUpdate', True)
         ws_order.websocket_data = self.order_update_message
 
         exp = Const.get_banknifry_expiry(Const, date.today())
 
-        self._s4 = Strategy4(_ws, _proxy, 'BANKNIFTY', 25, exp)
-        self._s9 = Strategy9(_ws, _proxy, 'BANKNIFTY', 25, exp)
+        self._s4 = Strategy4(_proxy, 'BANKNIFTY', 25, exp)
+        self._s9 = Strategy9(_proxy, 'BANKNIFTY', 25, exp)
         #self._s4.deploy('BANKNIFTY', 25)
         t1 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s4,))
         t1.daemon = True
