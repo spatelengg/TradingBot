@@ -55,6 +55,41 @@ class Helper:
             symbs = symbols[index:(index + cnt)]
         return data
         
+
+    def get_ption_with_moneyness(self, op_chain, underlaying, type:int):
+        data = {
+            'CE': '',
+            'PE' : ''
+        }
+        symbol = None
+        step = None
+        if underlaying == "BANKNIFTY":
+            symbol = "NSE:NIFTYBANK-INDEX"
+            step = 100
+        elif underlaying == "NIFTY":
+            symbol = "NSE:NIFTY-INDEX"
+            step = 50
+
+        res = self._proxy.quotes(symbol)
+        ltp = res['d'][0]['v']['lp']
+        print(symbol + ': ' + str(ltp))
+        mod = ltp % step
+        if mod == 0:
+            atm = ltp
+        elif mod > (step / 2):
+            atm = step * (int(ltp / step) + 1)
+        else:
+            atm = step * (int(ltp / step))
+
+        data['CE']  = atm + (step * type * -1)
+        data['PE']  = atm + (step * type)
+        
+        data['CE'] = op_chain[(op_chain['STRIKE'] == data['CE']) & (op_chain['OPT_TYPE'] == 'CE')].to_dict('records')[0]
+        data['PE'] = op_chain[(op_chain['STRIKE'] == data['PE']) & (op_chain['OPT_TYPE'] == 'PE')].to_dict('records')[0]
+
+        return data
+  
+
     def place_order(self, data):
         str = 'BUY' if data['side'] == 1 else 'SELL'
         str += ' ' + data['symbol']

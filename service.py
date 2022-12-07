@@ -5,6 +5,7 @@ import threading
 import time
 from datetime import  datetime, date
 from Strategy4 import Strategy4
+from Strategy9 import Strategy9
 from Proxy import Proxy
 from Const import Const
 
@@ -67,9 +68,15 @@ class MyService:
         exp = Const.get_banknifry_expiry(Const, date.today())
 
         self._s4 = Strategy4(_ws, _proxy, exp)
+        self._s9 = Strategy9(_ws, _proxy, exp)
         #self._s4.deploy('BANKNIFTY', 25)
         t1 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s4,'BANKNIFTY',))
         t1.daemon = True
+
+        t2 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s9,'BANKNIFTY',))
+        t2.daemon = True
+
+        t2.start()
         t1.start()
 
         try:

@@ -135,8 +135,6 @@ class Strategy4:
         buy_o = self.buy_order
         self.order_log('SELL {0} @{1}'.format( m['symbol'] , m['ltp']))
         self.ws_data.unsubscribe(symbol=[self.ce['n'], self.pe['n']]) 
-        self.ws_data.stop_running()
-        self.close_web_socket(self.ws_data)
         self.order_log('End of strategy')
          
     def MsgReceivedOrder(self, msg):
