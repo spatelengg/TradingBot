@@ -195,8 +195,8 @@ class Strategy9:
         
         cur_date = datetime.now()
         td = cur_date - self.stop_time
-        #if td.total_seconds() > 0:
-        #    self.stop_and_exit()
+        if td.total_seconds() > 0:
+            self.stop_and_exit()
 
         if m['symbol'] == self.ce['Symbol']:
             self.place_sl_order(self.ce, m)    
