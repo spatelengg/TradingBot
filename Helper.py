@@ -41,7 +41,7 @@ class Helper:
         symbs = symbols[index:(index + cnt)]
         while len(symbs) > 0:
             res = self._proxy.quotes(','.join(symbs))
-            for x in res['d']:
+            for x in res:
                 if x['v']['volume'] > 0:
                     typ = x['n'][-2:].lower()
                     ltp = x['v']['lp']
@@ -71,7 +71,7 @@ class Helper:
             step = 50
 
         res = self._proxy.quotes(symbol)
-        ltp = res['d'][0]['v']['lp']
+        ltp = res[0]['v']['lp']
         print(symbol + ': ' + str(ltp))
         mod = ltp % step
         if mod == 0:

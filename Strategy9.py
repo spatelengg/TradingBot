@@ -90,7 +90,7 @@ class Strategy9:
             symbols.append(self.pe['Symbol'])
 
         res = self._proxy.quotes(','.join(symbols))
-        for r in res['d']:
+        for r in res:
             w = None
             if self.ce['Symbol'] == r['n']:
                 w = self.ce
@@ -106,7 +106,7 @@ class Strategy9:
         ce = watches['CE']
         pe = watches['PE']
         res = self._proxy.quotes(ce['Symbol'] + ',' + pe['Symbol'])
-        for r in res['d']:
+        for r in res:
             o = None
             if ce['Symbol'] == r['n']:
                 o = ce
@@ -142,34 +142,32 @@ class Strategy9:
     def place_sl_order(self, ord, m):
         ltp = m['ltp']
         ord['ord']['ltp'] = ltp
-        
-        if ord['ord']['sl'] <= ltp:  #SL Hit
+        retry = ord['ord']['retry']
+        if retry < 3 and ord['ord']['sl'] <= ltp:  #SL Hit
             print('SL hit')
             watch_list = self._helper.get_ption_with_moneyness(self.op_chain, self.underlying, -1)
             w = watch_list[ord['OPT_TYPE']]
             if w['Symbol'] != ord['Symbol']: # new strike found to enter upon SL hit
                 self.place_order(m['ltp'], ord, 'BUY', 'SL Hit')
+                 
+                r = self._proxy.quotes(w['Symbol'])
+                r = r[0]
+                price = r['v']['bid']
+                w['ord'] = {
+                    'price': price,
+                    'ltp': price,
+                    'sl': price  + ( price * 0.3)
+                    ,'retry' : retry + 1
+                }
+                self.place_order(price, w, 'SELL', 'After SL orders: SL' + str(w['ord']['sl']))
                 
-                retry = ord['ord']['retry']
-                if retry < 3:
-                    r = self._proxy.quotes(w['Symbol'])
-                    r = r['d'][0]
-                    price = r['v']['bid']
-                    w['ord'] = {
-                        'price': price,
-                        'ltp': price,
-                        'sl': price  + ( price * 0.3)
-                        ,'retry' : retry + 1
-                    }
-                    self.place_order(price, w, 'SELL', 'After SL orders: SL' + str(w['ord']['sl']))
-                    
-                    self._proxy.unsubscribe([ord['Symbol']]) 
-                    self._proxy.subscribe([w['Symbol']])
+                self._proxy.unsubscribe([ord['Symbol']]) 
+                self._proxy.subscribe([w['Symbol']])
 
-                    if w['OPT_TYPE'] == 'CE':
-                        self.ce = w
-                    else:
-                        self.pe = w
+                if w['OPT_TYPE'] == 'CE':
+                    self.ce = w
+                else:
+                    self.pe = w
 
         self.print_profit_loss()
         

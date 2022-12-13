@@ -83,14 +83,14 @@ class MyService:
         self._s4 = Strategy4(_proxy, 'BANKNIFTY', 25, exp)
         self._s9 = Strategy9(_proxy, 'BANKNIFTY', 25, exp)
         #self._s4.deploy('BANKNIFTY', 25)
-        t1 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s4,))
-        t1.daemon = True
+        t4 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s4,))
+        t4.daemon = True
 
-        t2 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s9,))
-        t2.daemon = True
+        t9 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s9,))
+        t9.daemon = True
 
-        t2.start()
-        t1.start()
+        t4.start()
+        t9.start()
 
         try:
             while True:

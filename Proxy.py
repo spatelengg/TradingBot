@@ -3,7 +3,7 @@ import Ws_Fix
 from fyers_api import fyersModel
 from fyers_api import accessToken
 from fyers_api.Websocket import ws
-
+import time
  
 
 class Proxy: 
@@ -101,7 +101,12 @@ class Proxy:
         self.fyersWs.subscribe(symbol=list(dl.keys()),data_type='symbolData')
 
     def quotes(self, symbols):
-        return self.fyers.quotes({'symbols': symbols})
+        res = self.fyers.quotes({'symbols': symbols})
+        if res['s'] == 'ok':
+            return res['d']
+        else:
+            time.sleep(1)
+            return self.quotes(symbols)
 
 
     
