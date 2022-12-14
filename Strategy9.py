@@ -140,6 +140,10 @@ class Strategy9:
                     })
 
     def place_sl_order(self, ord, m):
+        if ord['lock'] == True:
+            return
+
+        ord['lock'] = True
         ltp = m['ltp']
         ord['ord']['ltp'] = ltp
         retry = ord['ord']['retry']
@@ -169,7 +173,9 @@ class Strategy9:
                 else:
                     self.pe = w
 
+        ord['lock'] = False
         self.print_profit_loss()
+        
         
 
     def print_profit_loss(self):
