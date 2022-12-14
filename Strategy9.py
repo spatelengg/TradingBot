@@ -119,6 +119,7 @@ class Strategy9:
                 'ltp': price,
                 'sl': price  + ( price * 0.3)
                 ,'retry': 0
+                ,'lock': False
             }
             self.place_order(price, o, 'SELL', 'First orders: SL' + str(o['ord']['sl']))
              
@@ -140,10 +141,10 @@ class Strategy9:
                     })
 
     def place_sl_order(self, ord, m):
-        if ord['lock'] == True:
+        if ord['ord']['lock'] == True:
             return
 
-        ord['lock'] = True
+        ord['ord']['lock'] = True
         ltp = m['ltp']
         ord['ord']['ltp'] = ltp
         retry = ord['ord']['retry']
@@ -173,7 +174,7 @@ class Strategy9:
                 else:
                     self.pe = w
 
-        ord['lock'] = False
+        ord['ord']['lock'] = False
         self.print_profit_loss()
         
         
