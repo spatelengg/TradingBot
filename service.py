@@ -89,7 +89,7 @@ class MyService:
         t9 = threading.Thread(target=self.run_strategy_in_thread, args=(self._s9,))
         t9.daemon = True
 
-        t4.start()
+        #t4.start()
         t9.start()
 
         try:
@@ -97,7 +97,16 @@ class MyService:
                 time.sleep(self.delay)
                 self.logger.debug('Tick')
         except KeyboardInterrupt:
-            t1.join(1.0)
+            try:                
+                t4.join(1.0)
+            except:
+                pass
+
+            try:
+                t9.join(1.0)
+            except:
+                pass
+            
             self.logger.warning('Keyboard interrupt (SIGINT) received...')
             self.stop()
 
