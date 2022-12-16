@@ -45,7 +45,7 @@ class MyService:
         #print(msg)
 
     def message_from_web_socket(self, msg):
-        print(msg)
+        #print(msg)
         for m in msg:
             self.write_market_data_to_file(m)
             for s in self.running_strategies:
